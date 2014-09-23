@@ -10,7 +10,7 @@ void main(List<String> args) {
     return;
   }
   
-  String buildFile = args[1];
+  String buildFile = args[0];
   Isolate.spawnUri(new Uri.file(buildFile), [], null).then((isolate) {
     // TODO: here, start listening to source file requests
   });
