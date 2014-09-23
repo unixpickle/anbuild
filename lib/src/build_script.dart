@@ -1,6 +1,6 @@
 part of anbuild;
 
-class NoBuildDirectoryError {
+class NoBuildDirectoryError extends Error {
   final String expectedPath;
   
   NoBuildDirectoryError(this.expectedPath);
@@ -72,7 +72,7 @@ class BuildScript {
       }
       var commandHandlers = {'includes': _addIncludes,
                              'sources': _addSources,
-                             'sources_to': _addSourcesToCompilers,
+                             'sourcesTo': _addSourcesToCompilers,
                              'sourceDirs': _addSourceDirectories,
                              'flags': _addFlags};
       Function handler = commandHandlers[args[0]];

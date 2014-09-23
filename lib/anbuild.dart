@@ -11,3 +11,5 @@ import 'package:path/path.dart' as path_lib;
 part 'src/compiler.dart';
 part 'src/build_script.dart';
 part 'src/target.dart';
+part 'src/parent_target.dart';
+part 'src/scanner_target.dart';
