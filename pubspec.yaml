@@ -1,6 +1,4 @@
 name: anbuild
 description: A sample command-line application
 dependencies:
-  anbuild:
-    path: ./lib
-  args: any
+  path: any
