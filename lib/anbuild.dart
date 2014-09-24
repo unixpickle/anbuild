@@ -14,4 +14,4 @@ part 'src/target.dart';
 part 'src/parent_target.dart';
 part 'src/scanner_target.dart';
 part 'src/c_style_compiler.dart';
-part 'src/arg_escape.dart';
+part 'src/shell_escape.dart';
