@@ -6,6 +6,59 @@ class NoBuildDirectoryError extends Error {
   NoBuildDirectoryError(this.expectedPath);
 }
 
+class _TargetResult {
+  final message;
+  
+  Map<String, List<String>> get flags => message.flags;
+  Map<String, List<String>> get options => message.options;
+  Map<String, List<String>> get includes => message.includes;
+  Map<String, List<String>> get sources => message.sources;
+  List<String> get scanFiles => message.scanFiles;
+  
+  _TargetResult(this.message) {
+    if (!(message is Map)) {
+      throw new ArgumentError('invalid message: $message');
+    }
+    validatePathListMaps();
+    validateScanFiles();
+  }
+  
+  void validatePathListMaps() {
+    for (String key in ['flags', 'options', 'sources', 'includes']) {
+      // message[key] must be a Map<String, List<String>>
+      if (!(message[key] is Map)) {
+        throw new ArgumentError('invalid $key: ${message[key]}');
+      }
+      for (var obj in message[key].keys) {
+        if (!(obj is String)) {
+          throw new ArgumentError('invalid key in $key: $obj');
+        }
+      }
+      for (var value in message[key].values) {
+        if (!(value is List)) {
+          throw new ArgumentError('invalid value in $key: $value');
+        }
+        for (var obj in value) {
+          if (!(obj is String)) {
+            throw new ArgumentError('invalid value in $key: $value');
+          }
+        }
+      }
+    }
+  }
+  
+  void validateScanFiles() {
+    if (!(message['scanFiles'] is List)) {
+      throw new ArgumentError('invalid scanFiles: ${message['scanFiles']}');
+    }
+    for (var obj in message['scanFiles']) {
+      if (!(obj is String)) {
+        throw new ArgumentError('invalid scanFile: $obj');
+      }
+    }
+  }
+}
+
 class BuildScript {
   final String path;
   final Target target;
@@ -20,13 +73,14 @@ class BuildScript {
     }
     _receiver = new ReceivePort();
     return _createPackagesLink().then((_) {
-      Uri launchUri = new Uri.file(path_lib.join(path, 'main.dart'));
+      Uri launchUri = new Uri.file(path_lib.join(path, 'anbuild',
+                                                 'main.dart'));
       return Isolate.spawnUri(launchUri, [], _receiver.sendPort);
     }).then((Isolate i) => _createdIsolate(i));
   }
   
   Future<String> _createPackagesLink() {
-    String root = path_lib.join(path_lib.dirname(path), 'anbuild');
+    String root = path_lib.join(path, 'anbuild');
     String packagesLink = path_lib.join(root, 'packages');
     return new File(root).stat().then((FileStat stat) {
       if (stat.type != FileSystemEntityType.DIRECTORY) {
@@ -45,84 +99,22 @@ class BuildScript {
   }
   
   Future _createdIsolate(Isolate isolate) {
-    return _receiver.first.then((object) {
+    return _receiver.first.then((message) {
       _receiver.close();
-      if (!(object is List)) {
-        var err = new ArgumentError('invalid object from isolate: $object');
-        return new Future.error(err);
+      _TargetResult result = new _TargetResult(message);
+      for (String compiler in result.flags.keys) {
+        target.addFlags(compiler, result.flags[compiler]);
       }
-      return Future.forEach(object, (args) {
-        if (!(args is List) || args.length == 0 || !(args[0] is String)) {
-          var err = new ArgumentError('invalid command: $args');
-          return new Future.error(err);
-        }
-        return _handleCommand(args);
-      });
-    });
-  }
-  
-  Future _handleCommand(List args) {
-    var commandHandlers = {'includes': _addIncludes,
-                           'sources': _addSources,
-                           'sourcesTo': _addSourcesToCompilers,
-                           'sourceDirs': _addSourceDirectories,
-                           'flags': _addFlags};
-    Function handler = commandHandlers[args[0]];
-    if (handler != null) {
-      return handler(args.sublist(1));
-    } else {
-      var err = new ArgumentError('unknown command: ${args[0]}');
-      return new Future.error(err);
-    }
-  }
-  
-  Future _addIncludes(List args) {
-    return _validateDoubleStrings(args).then((_) {
-      return target.addIncludes(args[0], args[1]);
-    });
-  }
-  
-  Future _addSources(List args) {
-    return _validateStrings(args).then((_) {
-      return target.addSources(args);
-    });
-  }
-  
-  Future _addSourcesToCompilers(List args) {
-    return _validateDoubleStrings(args).then((_) {
-      return target.addSourcesToCompilers(args[0], args[1]);
-    });
-  }
-  
-  Future _addSourceDirectories(List args) {
-    return _validateStrings(args).then((_) {
-      return target.addSourceDirectories(args);
-    });
-  }
-  
-  Future _addFlags(List args) {
-    return _validateDoubleStrings(args).then((_) {
-      return target.addFlags(args[0], args[1]);
-    });
-  }
-  
-  Future _validateStrings(List args) {
-    for (var arg in args) {
-      if (!(arg is String)) {
-        return new Future.error(new ArgumentError('invalid argument: $arg'));
+      for (String compiler in result.options.keys) {
+        target.addOptions(compiler, result.options[compiler]);
       }
-    }
-    return new Future.value(null);
-  }
-  
-  Future _validateDoubleStrings(List args) {
-    if (args.length != 2) {
-      return new Future.error(new ArgumentError('invalid argument count: ' +
-          args.length.toString()));
-    }
-    if (!(args[0] is List) || !(args[1] is List)) {
-      return new Future.error(new ArgumentError('invalid arguments: $args'));
-    }
-    return Future.wait([_validateStrings(args[0]), _validateStrings(args[1])]);
+      for (String compiler in result.includes.keys) {
+        target.addIncludes(compiler, result.includes[compiler]);
+      }
+      for (String compiler in result.sources.keys) {
+        target.addFiles(compiler, result.sources[compiler]);
+      }
+      return target.scanFiles(result.scanFiles);
+    });
   }
 }
