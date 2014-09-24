@@ -10,9 +10,7 @@ class BuildScript {
   final String path;
   final Target target;
   
-  Completer _completer = null;
   ReceivePort _receiver = null;
-  StreamSubscription _eventSubscription = null;
   
   BuildScript(this.path, this.target);
   
@@ -47,46 +45,34 @@ class BuildScript {
   }
   
   Future _createdIsolate(Isolate isolate) {
-    _completer = new Completer();
-    
-    _eventSubscription = _receiver.listen((var args) {
-      if (!(args is List) || args.length == 0 || !(args[0] is String)) {
-        _fail(new ArgumentError('invalid argument from build isolate: $args'));
-      } else {
-        _handleCommand(args);
+    return _receiver.first.then((object) {
+      _receiver.close();
+      if (!(object is List)) {
+        var err = new ArgumentError('invalid object from isolate: $object');
+        return new Future.error(err);
       }
+      return Future.forEach(object, (args) {
+        if (!(args is List) || args.length == 0 || !(args[0] is String)) {
+          var err = new ArgumentError('invalid command: $args');
+          return new Future.error(err);
+        }
+        return _handleCommand(args);
+      });
     });
-    
-    return _completer.future;
   }
   
-  void _handleCommand(List args) {
-    if (args[0] == 'done') {
-      _succeed();
-    } else if (args[0] == 'error') {
-      _fail(args.sublist(1));
+  Future _handleCommand(List args) {
+    var commandHandlers = {'includes': _addIncludes,
+                           'sources': _addSources,
+                           'sourcesTo': _addSourcesToCompilers,
+                           'sourceDirs': _addSourceDirectories,
+                           'flags': _addFlags};
+    Function handler = commandHandlers[args[0]];
+    if (handler != null) {
+      return handler(args.sublist(1));
     } else {
-      if (args.length < 2 || !(args[1] is SendPort)) {
-        _fail(new ArgumentError('invalid command arguments: $args'));
-        return;
-      }
-      var commandHandlers = {'includes': _addIncludes,
-                             'sources': _addSources,
-                             'sourcesTo': _addSourcesToCompilers,
-                             'sourceDirs': _addSourceDirectories,
-                             'flags': _addFlags};
-      Function handler = commandHandlers[args[0]];
-      if (handler != null) {
-        SendPort response = args[1];
-        handler(args.sublist(2)).then((_) {
-          response.send(true);
-        }).catchError((e) {
-          response.send(false);
-          _fail(e);
-        });
-      } else {
-        _fail(new ArgumentError('unknown command ${args[0]}'));
-      }
+      var err = new ArgumentError('unknown command: ${args[0]}');
+      return new Future.error(err);
     }
   }
   
@@ -138,15 +124,5 @@ class BuildScript {
       return new Future.error(new ArgumentError('invalid arguments: $args'));
     }
     return Future.wait([_validateStrings(args[0]), _validateStrings(args[1])]);
-  }
-  
-  void _fail(e) {
-    _completer.completeError(e);
-    _eventSubscription.cancel();
-  }
-  
-  void _succeed() {
-    _completer.complete();
-    _eventSubscription.cancel();
   }
 }

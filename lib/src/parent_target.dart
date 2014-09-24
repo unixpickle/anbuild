@@ -17,18 +17,7 @@ class ParentTarget implements Target {
    */
   final SendPort sendPort;
   
-  /**
-   * Call this from your build script's main(). It calls [theMain] inside of a
-   * zone, so that any exceptions will be caught and forwarded to the parent
-   * isolate.
-   */
-  static void run(var message, BuildScriptMain theMain) {
-    if (!(message is SendPort)) {
-      throw new ArgumentError('expected SendPort as initial message');
-    }
-    ParentTarget t = new ParentTarget(message);
-    runZoned(() => theMain(t), onError: t._fail);
-  }
+  final List<List> _commands = [];
   
   /**
    * Create a [ParentTarget] with a given [sendPort].
@@ -36,10 +25,11 @@ class ParentTarget implements Target {
   ParentTarget(this.sendPort);
   
   /**
-   * Tell the parent isolate that this target has finished.
+   * Tell the parent isolate that this target has finished, sending all pending
+   * commands to it.
    */
   void done() {
-    sendPort.send(['done']);
+    sendPort.send(_commands);
   }
   
   Future addSourceDirectories(List<String> directories) {
@@ -63,21 +53,9 @@ class ParentTarget implements Target {
   }
   
   Future _runCommand(String command, List args) {
-    ReceivePort recv = new ReceivePort();
-    List newArgs = [command, recv.sendPort];
-    newArgs.add(args);
-    sendPort.send(newArgs);
-    return recv.first.then((var obj) {
-      if (obj == true) {
-        return null;
-      } else {
-        return new Future.error(new Error());
-      }
-      recv.close();
-    });
-  }
-  
-  void _fail(e) {
-    sendPort.send(['error', e.toString()]);
+    List res = [command];
+    res.add(args);
+    _commands.add(res);
+    return new Future.value(null);
   }
 }
