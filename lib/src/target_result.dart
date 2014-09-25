@@ -1,3 +1,5 @@
+part of anbuild;
+
 /**
  * The result of a target, including all of the sources it searched and options
  * it added.
@@ -21,11 +23,47 @@ class TargetResult {
             'sources': sources, 'scanSources': scanSources};
   }
   
-  void addOptions(String language, List<String> option) {
-    // TODO: this
+  void addFromTargetResult(TargetResult result) {
+    for (var key in result.options) {
+      addOptions(key, result.options[key]);
+    }
+    for (var key in result.flags) {
+      addFlags(key, result.flags[key]);
+    }
+    for (var key in result.includes) {
+      addIncludes(key, result.includes[key]);
+    }
+    for (var key in result.sources) {
+      addSources(key, result.sources[key]);
+    }
+    addScanSources(result.scanSources);
   }
   
-  void _addField(Map map, String key, String value) {
-    // TODO: this
+  void addOptions(String language, List<String> theOptions) {
+    _addFields(options, language, theOptions);
+  }
+  
+  void addFlags(String language, List<String> theFlags) {
+    _addFields(flags, language, theFlags);
+  }
+  
+  void addIncludes(String language, List<String> directories) {
+    _addFields(includes, language, directories.map(targetAbsolutePath));
+  }
+  
+  void addSources(String language, List<String> files) {
+    _addFields(sources, language, files.map(targetAbsolutePath));
+  }
+  
+  void addScanSources(List<String> files) {
+    scanSources.addAll(files.map(targetAbsolutePath));
+  }
+  
+  void _addFields(Map map, String key, Iterable<String> values) {
+    if (map[key] == null) {
+      map[key] = new List.from(values);
+    } else {
+      map[key].addAll(values);
+    }
   }
 }
