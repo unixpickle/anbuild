@@ -15,7 +15,8 @@ class ConcreteTarget extends Target {
     return nextTask;
   }
   
-  void scanFiles(List<String> files) {
+  void scanFiles(List<String> _files) {
+    List<String> files = _files.map(absolutePath);
     nextTask = nextTask.then((_) {
       return Future.wait(files.map((f) => new File(f).stat()));
     }).then((List<FileStat> stats) {
@@ -30,14 +31,14 @@ class ConcreteTarget extends Target {
   
   void addFiles(String compiler, List<String> files) {
     for (String f in files) {
-      _addFile(compiler, f);
+      _addFile(compiler, absolutePath(f));
     }
   }
   
   void addIncludes(String compiler, List<String> directories) {
     Compiler c = compilers[compiler];
     if (c != null) {
-      c.addIncludes(directories);
+      c.addIncludes(directories.map(absolutePath));
     }
   }
   

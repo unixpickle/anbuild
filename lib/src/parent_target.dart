@@ -32,15 +32,15 @@ class ParentTarget extends Target {
   }
   
   void scanFiles(List<String> files) {
-    _scanFiles.addAll(files);
+    _scanFiles.addAll(files.map(absolutePath));
   }
   
   void addFiles(String compiler, List<String> files) {
-    _addOrSet(_sources, compiler, files);
+    _addOrSet(_sources, compiler, files.map(absolutePath));
   }
   
   void addIncludes(String compiler, List<String> directories) {
-    _addOrSet(_includes, compiler, directories);
+    _addOrSet(_includes, compiler, directories.map(absolutePath));
   }
   
   void addOptions(String compiler, List<String> options) {

@@ -30,23 +30,26 @@ abstract class Target {
    * Add a directory by reading its contents and scanning each contained file
    * with [scanFiles].
    * 
+   * The [directory] path will be resolved with [absolutePath].
+   * 
    * If [recursively] is specified as `false`, sub-directories of the given
    * [directory] will not be scanned. The default value of this argument is
    * `true`.
    */
   void scanDirectory(String directory, {bool recursive: true}) {
     nextTask = nextTask.then((_) {
-      Directory dir = new Directory(directory);
-      return new Directory(directory).list(recursive: recursive,
-          followLinks: true).toList();
+      Directory dir = new Directory(absolutePath(directory));
+      return dir.list(recursive: recursive, followLinks: true).toList();
     }).then((List<FileSystemEntity> entities) {
-      scanFiles(entities.map((e) => e.absolute.path));
+      scanFiles(entities.map((e) => e.path));
     });
   }
   
   /**
    * Add a list of files by "scanning" them (usually just file-extension
    * checking) to figure out which compiler they belong to.
+   * 
+   * The [files] will be resolved with [absolutePath].
    * 
    * If a compiler cannot be found for a given file, that file will be ignored.
    */
@@ -55,12 +58,16 @@ abstract class Target {
   /**
    * Add a list of [files] to a specified [compiler].
    * 
+   * The [files] will be resolved with [absolutePath].
+   * 
    * If there is no such [compiler], the files will be ignored.
    */
   void addFiles(String compiler, List<String> files);
   
   /**
    * Add a list of [directories] to the includes list of a given [compiler].
+   * 
+   * The [directories] will be resolved with [absolutePath].
    * 
    * If there is no such [compiler], the files will be ignored.
    */
