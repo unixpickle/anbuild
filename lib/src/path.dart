@@ -22,18 +22,3 @@ String targetAbsolutePath(String path) {
   }
   return path_lib.normalize(path_lib.relative(path, from: targetDirectory));
 }
-
-/**
- * Get a target-relative path for an absolute [path].
- * 
- * This will throw an [ArgumentError] if [path] is not an absolute path.
- * 
- * For example, if [path] is "/some/project/src/my_file.c" and
- * [targetDirectory] is "/some/project", the result will be "src/my_file.c".
- */
-String targetRelativePath(String path) {
-  if (!path_lib.isAbsolute(path)) {
-    throw new ArgumentError('path is not absolute: $path');
-  }
-  return path_lib.relative(path, from: targetDirectory);
-}
