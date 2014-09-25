@@ -24,9 +24,8 @@ I'd like my **main.dart** build scripts to look something like this:
       var target = new ParentTarget(port);
       target.addIncludes('c', 'include');
       target.addIncludes('cxx', 'include');
-      target.scanDirectory('src/').then((_) {
-      	target.done();
-      });
+      target.scanDirectory('src/');
+      target.done();
     }
 
 In such build scripts, you would be able to add dependencies to the target like such:

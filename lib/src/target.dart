@@ -6,6 +6,27 @@ part of anbuild;
  */
 abstract class Target {
   /**
+   * A future which will complete when asynchronous operations on this target
+   * complete.
+   */
+  Future nextTask = new Future.value(null);
+  
+  /**
+   * Indicate that the caller is done operating on this target.
+   */
+  Future done();
+  
+  /**
+   * Add a dependency asynchronously by running its build script on this
+   * target.
+   */
+  void addDependency(String path) {
+    nextTask = nextTask.then((_) {
+      return new BuildScript(path, this).run();
+    });
+  }
+  
+  /**
    * Add a directory by reading its contents and scanning each contained file
    * with [scanFiles].
    * 
@@ -13,12 +34,13 @@ abstract class Target {
    * [directory] will not be scanned. The default value of this argument is
    * `true`.
    */
-  Future scanDirectory(String directory, {bool recursive: true}) {
-    Directory dir = new Directory(directory);
-    var listJob = new Directory(directory).list(recursive: recursive,
-        followLinks: true).toList();
-    return listJob.then((List<FileSystemEntity> entities) {
-      return scanFiles(entities.map((e) => e.absolute.path));
+  void scanDirectory(String directory, {bool recursive: true}) {
+    nextTask = nextTask.then((_) {
+      Directory dir = new Directory(directory);
+      return new Directory(directory).list(recursive: recursive,
+          followLinks: true).toList();
+    }).then((List<FileSystemEntity> entities) {
+      scanFiles(entities.map((e) => e.absolute.path));
     });
   }
   
@@ -28,7 +50,7 @@ abstract class Target {
    * 
    * If a compiler cannot be found for a given file, that file will be ignored.
    */
-  Future scanFiles(List<String> files);
+  void scanFiles(List<String> files);
   
   /**
    * Add a list of [files] to a specified [compiler].

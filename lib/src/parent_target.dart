@@ -24,14 +24,15 @@ class ParentTarget extends Target {
   /**
    * Tell the parent isolate that this target has finished.
    */
-  void done() {
-    sendPort.send({'flags': _flags, 'options': _options, 'sources': _sources,
-                   'includes': _includes, 'scanFiles': _scanFiles});
+  Future done() {
+    return nextTask = nextTask.then((_) {
+      sendPort.send({'flags': _flags, 'options': _options, 'sources': _sources,
+                     'includes': _includes, 'scanFiles': _scanFiles});
+    });
   }
   
-  Future scanFiles(List<String> files) {
+  void scanFiles(List<String> files) {
     _scanFiles.addAll(files);
-    return new Future.value(null);
   }
   
   void addFiles(String compiler, List<String> files) {
@@ -50,8 +51,8 @@ class ParentTarget extends Target {
     _addOrSet(_flags, compiler, flags);
   }
   
-  Future _addOrSet(Map<String, List<String>> map, String key,
-                   List<String> values) {
+  void _addOrSet(Map<String, List<String>> map, String key,
+                 List<String> values) {
     var theList = map[key];
     if (theList != null) {
       theList.addAll(values);

@@ -11,14 +11,19 @@ class ConcreteTarget extends Target {
     }
   }
   
-  Future scanFiles(List<String> files) {
-    return Future.wait(files.map((f) => new File(f).stat())).then((stats) {
+  Future done() {
+    return nextTask;
+  }
+  
+  void scanFiles(List<String> files) {
+    nextTask = nextTask.then((_) {
+      return Future.wait(files.map((f) => new File(f).stat()));
+    }).then((List<FileStat> stats) {
       assert(stats.length == files.length);
       for (int i = 0; i < stats.length; ++i) {
-        if (stats[i].type != FileSystemEntityType.FILE) {
-          continue;
+        if (stats[i].type == FileSystemEntityType.FILE) {
+          _scanFile(files[i]);
         }
-        _scanFile(files[i]);
       }
     });
   }
