@@ -19,10 +19,12 @@ abstract class Target {
   /**
    * Add a dependency asynchronously by running its build script on this
    * target.
+   * 
+   * The path to the dependency will be resolved using [absolutePath].
    */
   void addDependency(String path) {
     nextTask = nextTask.then((_) {
-      return new BuildScript(path, this).run();
+      return new BuildScript(absolutePath(path), this).run();
     });
   }
   

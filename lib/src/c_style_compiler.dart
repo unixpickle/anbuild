@@ -39,4 +39,9 @@ class CStyleCompiler extends Compiler {
   void addIncludes(List<String> directories) {
     addFlags(directories.map((String dir) => '-I$dir'));
   }
+  
+  String toString() {
+    return 'CStyleCompiler (name=$name, command=$compilerCommand, ' +
+        'extensions=$fileExtensions)';
+  }
 }

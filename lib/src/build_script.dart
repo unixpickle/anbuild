@@ -4,6 +4,8 @@ class NoBuildDirectoryError extends Error {
   final String expectedPath;
   
   NoBuildDirectoryError(this.expectedPath);
+  
+  String toString() => 'NoBuildDirectoryError: $expectedPath';
 }
 
 class _TargetResult {
@@ -72,30 +74,62 @@ class BuildScript {
       throw new StateError('cannot call run() more than once');
     }
     _receiver = new ReceivePort();
-    return _createPackagesLink().then((_) {
+    Completer c = new Completer();
+    _createPackagesLink().then((_) {
       Uri launchUri = new Uri.file(path_lib.join(path, 'anbuild',
                                                  'main.dart'));
       return Isolate.spawnUri(launchUri, [], _receiver.sendPort);
-    }).then((Isolate i) => _createdIsolate(i));
+    }).then((Isolate i) => _createdIsolate(i)).then((_) {
+      return _deletePackagesLink().then((_) {
+        c.complete();
+      }).catchError((e) => c.completeError(e));
+    }).catchError((e) {
+      return _deletePackagesLink().whenComplete(() {
+        c.completeError(e);
+      }).catchError((_) {});
+    });
+    return c.future;
   }
   
   Future<String> _createPackagesLink() {
     String root = path_lib.join(path, 'anbuild');
-    String packagesLink = path_lib.join(root, 'packages');
+    String packagesDir = path_lib.join(root, 'packages');
     return new File(root).stat().then((FileStat stat) {
       if (stat.type != FileSystemEntityType.DIRECTORY) {
         throw new NoBuildDirectoryError(root);
       }
     }).then((_) {
-      return new File(packagesLink).exists();
+      return new File(packagesDir).exists();
     }).then((bool exists) {
       if (exists) return null;
-      String localDir = path_lib.dirname(Platform.script.path);
-      String localPackages = path_lib.join(localDir, 'packages');
-      return new File(localPackages).resolveSymbolicLinks();
-    }).then((String packages) {
-      return new Link(packagesLink).create(packages);
+      return new Directory(packagesDir).create();
+    }).then((_) {
+      String anarchPath;
+      if (target is ParentTarget) {
+        anarchPath = absolutePath('packages/anarch');
+      } else {
+        anarchPath = absolutePath('../lib');
+      }
+      return new Directory(anarchPath).resolveSymbolicLinks();
+    }).then((String target) {
+      return new Link(path_lib.join(packagesDir, 'anbuild')).create(target);
+    }).then((_) {
+      String localPackages = absolutePath('packages');
+      return new Directory(localPackages).list(followLinks: false).toList();
+    }).then((List<FileSystemEntity> entities) {
+      return Future.forEach(entities, (FileSystemEntity ent) {
+        String baseName = path_lib.basename(ent.path);
+        if (baseName == 'anbuild' || baseName.startsWith('.')) {
+          return new Future.value(null);
+        }
+        return new Link(path_lib.join(packagesDir, baseName)).create(ent.path);
+      });
     });
+  }
+  
+  Future _deletePackagesLink() {
+    String packagesDir = path_lib.join(path, 'anbuild', 'packages');
+    return new Directory(packagesDir).delete(recursive: true);
   }
   
   Future _createdIsolate(Isolate isolate) {
