@@ -6,5 +6,12 @@ abstract class Medium {
   
   Medium(this.target, String buildPath) : buildPath = absolutePath(buildPath);
   
-  String generate();
+  factory Medium.named(String name, ConcreteTarget target, String buildPath) {
+    if (name != 'makefile') {
+      throw new ArgumentError('unknown medium: $name');
+    }
+    return new Makefile(target, buildPath);
+  }
+  
+  Future write();
 }

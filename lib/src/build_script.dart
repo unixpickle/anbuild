@@ -11,11 +11,11 @@ class NoBuildDirectoryError extends Error {
 class _TargetResult {
   final message;
   
-  Map<String, List<String>> get flags => message.flags;
-  Map<String, List<String>> get options => message.options;
-  Map<String, List<String>> get includes => message.includes;
-  Map<String, List<String>> get sources => message.sources;
-  List<String> get scanFiles => message.scanFiles;
+  Map<String, List<String>> get flags => message['flags'];
+  Map<String, List<String>> get options => message['options'];
+  Map<String, List<String>> get includes => message['includes'];
+  Map<String, List<String>> get sources => message['sources'];
+  List<String> get scanFiles => message['scanFiles'];
   
   _TargetResult(this.message) {
     if (!(message is Map)) {

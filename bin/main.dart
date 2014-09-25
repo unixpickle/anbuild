@@ -34,14 +34,27 @@ void main(List<String> args) {
   
   List<Compiler> compilers = parseCompilers(results['ccompiler']);
   if (compilers == null) return;
-  
   ConcreteTarget target = new ConcreteTarget(compilers);
+  
+  Medium medium;
+  try {
+    medium = new Medium.named(results['medium'], target, results.rest.first);
+  } catch (e) {
+    stderr.writeln('error: $e');
+    stderr.flush().then((_) {
+      exit(1);
+    });
+    return;
+  }
+  
   target.addDependency(results.rest.first);
   target.done().then((_) {
-    exit(0);
+    return medium.write();
   }).catchError((e) {
-    print('error: $e');
-    exit(1);
+    stderr.writeln('error: $e');
+    stderr.flush().then((_) {
+      exit(1);
+    });
   });
 }
 

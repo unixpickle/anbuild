@@ -1,11 +1,16 @@
 part of anbuild;
 
 class Makefile extends Medium {
-  String get objectsPath => path_lib.join(buildPath, 'objects');
+  String get objectsPath => path_lib.join(buildPath, 'anbuild', 'objects');
   
   Makefile(ConcreteTarget target, String buildPath) : super(target, buildPath);
   
-  String generate() {
+  Future write() {
+    String outputPath = path_lib.join(buildPath, 'anbuild', 'Makefile');
+    return new File(outputPath).writeAsString(_generate());
+  }
+  
+  String _generate() {
     StringBuffer buffer = new StringBuffer();
     buffer.write(_generateFirstRule());
     buffer.write(_generateObjectsRule());
