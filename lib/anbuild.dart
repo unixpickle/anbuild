@@ -8,13 +8,14 @@ import 'dart:async';
 import 'dart:isolate';
 import 'package:path/path.dart' as path_lib;
 
-part 'src/compiler.dart';
-part 'src/build_script.dart';
-part 'src/target.dart';
-part 'src/parent_target.dart';
-part 'src/concrete_target.dart';
-part 'src/c_style_compiler.dart';
-part 'src/shell_escape.dart';
-part 'src/medium.dart';
-part 'src/makefile.dart';
-part 'src/path_manipulation.dart';
+part 'src/target_result.dart';
+part 'src/path.dart';
+part 'src/dependency.dart';
+
+part 'src/output/output_formatter.dart';
+part 'src/output/makefile.dart';
+part 'src/output/shell_escape.dart';
+part 'src/file_scanner.dart';
+
+part 'src/internal/target_task.dart';
+part 'src/internal/package_directory.dart';

@@ -1,76 +1,41 @@
-import 'dart:io';
-import 'package:args/args.dart';
 import '../lib/anbuild.dart';
+import 'package:args/args.dart';
+import 'package:path/path.dart' as path_lib;
+import 'dart:io';
+
+void main(List<String> args) {
+  if (args.length == 0) {
+    dieUsage();
+  }
+  var results = argumentParser.parse(args);
+  if (results.rest.length != 1) {
+    dieUsage();
+  }
+  if (results['formatter'] != 'makefile') {
+    stderr.writeln('invalid formatter: ${results['formatter']}');
+    dieUsage();
+  }
+  runBuild(results.rest.first, exportMakefile);
+}
+
+void runBuild(String script, OutputFormatter formatter) {
+  runDependency(path_lib.absolute(script)).then((result) {
+    return formatter(path_lib.dirname(script), result);
+  }).catchError((e) {
+    stderr.writeln('Error: $e');
+    exit(1);
+  });
+}
 
 ArgParser get argumentParser {
   ArgParser parser = new ArgParser(allowTrailingOptions: true);
-  parser.addOption('ccompiler', help: 'Add a C-style compiler to the target',
-                   valueHelp: 'name:command:ext1,ext2,...',
-                   allowMultiple: true);
-  parser.addOption('medium', defaultsTo: 'makefile');
+  parser.addOption('formatter', help: 'The target build system',
+      defaultsTo: 'makefile');
   return parser;
 }
 
-void printUsage() {
-  stderr.writeln('Usage: anbuild [options] <build.dart>');
+void dieUsage() {
+  stderr.writeln('Usage: anbuild [options] buildscript.dart');
   stderr.writeln(argumentParser.getUsage());
-  stderr.flush().then((_) {
-    exit(1);
-  });
-  return;
-}
-
-void main(List<String> args) {
-  ArgResults results;
-  try {
-    results = argumentParser.parse(args);
-    if (results.rest.length != 1) {
-      throw '';
-    }
-  } catch (_) {
-    printUsage();
-    return;
-  }
-  
-  List<Compiler> compilers = parseCompilers(results['ccompiler']);
-  if (compilers == null) return;
-  ConcreteTarget target = new ConcreteTarget(compilers);
-  
-  Medium medium;
-  try {
-    medium = new Medium.named(results['medium'], target, results.rest.first);
-  } catch (e) {
-    stderr.writeln('error: $e');
-    stderr.flush().then((_) {
-      exit(1);
-    });
-    return;
-  }
-  
-  target.addDependency(results.rest.first);
-  target.done().then((_) {
-    return medium.write();
-  }).catchError((e) {
-    stderr.writeln('error: $e');
-    stderr.flush().then((_) {
-      exit(1);
-    });
-  });
-}
-
-List<Compiler> parseCompilers(String descs) {
-  List<Compiler> result = [];
-  for (String compilerDesc in descs) {
-    List<String> comps = compilerDesc.split(':');
-    if (comps.length != 3) {
-      stderr.writeln('invalid C-style compiler: $compilerDesc');
-      stderr.flush().then((_) {
-        exit(1);
-      });
-      return null;
-    }
-    List<String> extensions = comps[2].split(',');
-    result.add(new CStyleCompiler(comps[0], extensions, comps[1]));
-  }
-  return result;
+  exit(1);
 }
