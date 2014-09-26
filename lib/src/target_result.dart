@@ -48,6 +48,14 @@ class TargetResult {
       scanSources = [];
   
   /**
+   * Create a deep copy of a different [result].
+   */
+  TargetResult.from(TargetResult result) : options = {}, flags = {},
+      includes = {}, sources = {}, scanSources = [] {
+    addFromTargetResult(result);
+  }
+  
+  /**
    * Create a [TargetResult] from an object received from an isolate.
    */
   TargetResult.unpack(Map map) : options = map['options'],
@@ -117,13 +125,61 @@ class TargetResult {
   }
   
   /**
+   * Get the options which have been added to this instance for a given
+   * [language].
+   * 
+   * If no options have been added, this will return an empty list.
+   */
+  List<String> getOptions(String language) {
+    return _getFields(options, language);
+  }
+  
+  /**
+   * Get the flags which have been added to this instance for a given
+   * [language].
+   * 
+   * If no flags have been added, this will return an empty list.
+   */
+  List<String> getFlags(String language) {
+    return _getFields(flags, language);
+  }
+  
+  /**
+   * Get the includes which have been added to this instance for a given
+   * [language].
+   * 
+   * If no includes have been added, this will return an empty list.
+   */
+  List<String> getIncludes(String language) {
+    return _getFields(includes, language);
+  }
+  
+  /**
+   * Get the sources which have been added to this instance for a given
+   * [language].
+   * 
+   * If no sources have been added, this will return an empty list.
+   */
+  List<String> getSources(String language) {
+    return _getFields(sources, language);
+  }
+  
+  /**
    * Add fields to a list in [map]. Create the list if it does not exist.
    */
-  void _addFields(Map map, String key, Iterable<String> values) {
+  static void _addFields(Map map, String key, Iterable<String> values) {
     if (map[key] == null) {
       map[key] = new List.from(values);
     } else {
       map[key].addAll(values);
+    }
+  }
+  
+  static List<String> _getFields(Map<String, List<String>> map, String key) {
+    if (map[key] == null) {
+      return [];
+    } else {
+      return map[key];
     }
   }
 }
