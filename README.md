@@ -40,11 +40,11 @@ void main(_, port) {
 In such build scripts, you can add dependencies to the target like such:
 
 ```dart
-    var result = ...;
-    ...
-	runDependency('dependencies/my_lib/build.dart').then((aResult) {
-      result.addFromTargetResult(aResult);
-    });
+var result = ...;
+...
+runDependency('dependencies/my_lib/build.dart').then((aResult) {
+  result.addFromTargetResult(aResult);
+});
 ```
 
 The code above will asynchronously run *dependencies/my_lib/build.dart* in a separate isolate and add its result to the `result` object.
