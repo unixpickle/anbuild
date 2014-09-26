@@ -26,21 +26,25 @@ Here's how it works:
 
 **build.dart** scripts to look something like this:
 
-    import 'package:anbuild/anbuild.dart';
-    void main(_, port) {
-      var result = new TargetResult();
-      result.addIncludes('c', ['include']);
-      result.addFlags('c', ['-c']);
-      result.addScanSources('src');
-      port.send(result.pack());
-    }
+```dart
+import 'package:anbuild/anbuild.dart';
+void main(_, port) {
+  var result = new TargetResult();
+  result.addIncludes('c', ['include']);
+  result.addFlags('c', ['-c']);
+  result.addScanSources('src');
+  port.send(result.pack());
+}
+```
 
 In such build scripts, you can add dependencies to the target like such:
 
+```dart
     var result = ...;
     ...
 	runDependency('dependencies/my_lib/build.dart').then((aResult) {
       result.addFromTargetResult(aResult);
     });
+```
 
 The code above will asynchronously run *dependencies/my_lib/build.dart* in a separate isolate and add its result to the `result` object.
