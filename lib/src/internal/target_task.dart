@@ -33,6 +33,7 @@ class _TargetTask {
   _TargetTask(String scriptMain)
       : scriptMain = scriptMain,
         targetDirectory = path_lib.dirname(scriptMain) {
+    assert(path_lib.isAbsolute(scriptMain));
     packages = new _PackagesDirectory(path_lib.join(targetDirectory,
                                                     'packages'));
   }
@@ -44,7 +45,7 @@ class _TargetTask {
    */
   Future<TargetResult> run() {
     return packages.create().then((_) {
-      return Isolate.spawnUri(new Uri.file(scriptMain), [], incoming);
+      return Isolate.spawnUri(new Uri.file(scriptMain), [], incoming.sendPort);
     }).then((_) {
       return incoming.first;
     }).then((message) {

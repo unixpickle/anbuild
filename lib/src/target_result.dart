@@ -74,16 +74,16 @@ class TargetResult {
    * Add the contents of [result] to this object.
    */
   void addFromTargetResult(TargetResult result) {
-    for (var key in result.options) {
+    for (var key in result.options.keys) {
       addOptions(key, result.options[key]);
     }
-    for (var key in result.flags) {
+    for (var key in result.flags.keys) {
       addFlags(key, result.flags[key]);
     }
-    for (var key in result.includes) {
+    for (var key in result.includes.keys) {
       addIncludes(key, result.includes[key]);
     }
-    for (var key in result.sources) {
+    for (var key in result.sources.keys) {
       addSources(key, result.sources[key]);
     }
     addScanSources(result.scanSources);

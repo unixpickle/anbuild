@@ -31,8 +31,8 @@ class _PackagesDirectory {
    * run anbuild.
    */
   Future create() {
-    return new File(path).exists().then((exists) {
-      if (exists) {
+    return new File(path).stat().then((stats) {
+      if (stats.type != FileSystemEntityType.NOT_FOUND) {
         throw new FileSystemException('packages/ already exists', path);
       }
     }).then((_) {
@@ -78,7 +78,8 @@ class _PackagesDirectory {
     // Make sure the anbuild path exists before we link to it.
     return new Directory(anbuildPath).exists().then((exists) {
       if (!exists) {
-        throw new StateError('missing ../lib directory!');
+        throw new FileSystemException('missing reflective directory',
+            anbuildPath);
       }
     }).then((_) {
       return new Link(path_lib.join(path, 'anbuild')).create(anbuildPath);
@@ -106,7 +107,7 @@ class _PackagesDirectory {
         // created link, since Pub might give the actual package directory a
         // weird name.
         var packageName = path_lib.basename(entities[i].path);
-        var sourcePath = resolved[i].absolute.path;
+        var sourcePath = resolved[i];
         var link = new Link(path_lib.join(path, packageName));
         waiting.add(link.create(sourcePath));
       }

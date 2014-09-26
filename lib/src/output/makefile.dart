@@ -50,7 +50,7 @@ class _Makefile {
     allSources..addAll(cSources)..addAll(cppSources)..addAll(asmSources);
     for (String path in allSources) {
       buffer.write(' ');
-      buffer.write(shellEscape(path));
+      buffer.write(shellEscape(objectPath(path)));
     }
     buffer.write('\n\n' 'objects/: \n\t' 'mkdir objects/\n\n');
   }
@@ -68,11 +68,8 @@ class _Makefile {
   }
   
   void encodeSource(String path, String compiler, String language) {
-    assert(path_lib.isAbsolute(path));
-    var objectName = path_lib.relative(path, from: targetRoot)
-        .replaceAll(new RegExp(r'(/|\\|\.)'), '_');
-    objectName = 'objects/$objectName.o';
-    buffer.write(shellEscape(objectName));
+    var object = objectPath(path);
+    buffer.write(shellEscape(object));
     buffer.write(': ');
     buffer.write(shellEscape(path));
     buffer.write('\n\t\$($compiler) \$(${compiler}FLAGS)');
@@ -98,12 +95,12 @@ class _Makefile {
     buffer.write(' ');
     buffer.write(shellEscape(path));
     buffer.write(' -o ');
-    buffer.write(shellEscape(objectName));
+    buffer.write(shellEscape(object));
     buffer.write('\n\n');
   }
   
   void encodeFooter() {
-    buffer.write('clean:\n\t' 'rm -rf objects/\n\n');
+    buffer.write('clean:\n\t' '\$(RM) -r objects/\n\n');
   }
   
   Future writeMakefile() {
@@ -111,4 +108,11 @@ class _Makefile {
     var makefilePath = path_lib.join(targetRoot, 'Makefile');
     return new File(makefilePath).writeAsString(data);
   }
+  
+  String objectPath(String path) {
+    assert(path_lib.isAbsolute(path));
+    var objectName = path_lib.relative(path, from: targetRoot)
+        .replaceAll(new RegExp(r'(/|\\|\.)'), '_');
+    return 'objects/$objectName.o';
+}
 }
