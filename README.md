@@ -2,42 +2,45 @@
 
 This will be a replacement for [makemaker](https://github.com/unixpickle/makemaker).  The main purpose of this tool is too generate makefiles (or, in the future, other types of build scripts).
 
-# General system
+# Installation
 
-Here's how it will work:
+The file [bin/main.dart](bin/main.dart) is the main anbuild executable. Run it with:
 
- * I create library X
- * In the root directory for library X, I create a new directory called **anbuild/**
- * In my new *anbuild/* directory, I create a file called **main.dart** which operates on the "target". These operations include:
+    dart bin/main.dart <path to build.dart>
+
+You may want to setup a Bash alias to turn this into a simple `anbuild` command.
+
+# General usage
+
+Here's how it works:
+
+ * In the root directory of a library, I create a file called **build.dart**.
+ * In my new *build.dart* file, I can
    * Add include directories
    * Add sources
    * Add compiler flags
- * To generate a Makefile, I run a command such as: `anbuild --medium makefile ./`
- * To run the new Makefile, I run `make -C anbuild/`
+ * To generate a Makefile, I run a command such as: `anbuild build.dart`
+ * To run the new Makefile, I run `make`
 
-# Theoretical example
+# Example
 
-I'd like my **main.dart** build scripts to look something like this:
+**build.dart** scripts to look something like this:
 
     import 'package:anbuild/anbuild.dart';
     void main(_, port) {
-      var target = new ParentTarget(port);
-      target.addIncludes('c', 'include');
-      target.addIncludes('cxx', 'include');
-      target.scanDirectory('src/');
-      target.done();
+      var result = new TargetResult();
+      result.addIncludes('c', ['include']);
+      result.addFlags('c', ['-c']);
+      result.addScanSources('src');
+      port.send(result.pack());
     }
 
-In such build scripts, you would be able to add dependencies to the target like such:
+In such build scripts, you can add dependencies to the target like such:
 
-	new BuildScript('dependencies/my_lib', target).run().then((_) {
-	    // ...
-	});
+    var result = ...;
+    ...
+	runDependency('dependencies/my_lib/build.dart').then((aResult) {
+      result.addFromTargetResult(aResult);
+    });
 
-This would run *dependencies/my_lib/anbuild/main.dart* as its own script in a separate isolate.
-
-# TODO
-
- * Implement the concept of a "medium". In this case, "makefile" will be the only medium for now.
- * Implement the concept of a toolchain. Some ideas: "native" (default), "x86-64-gcc-elf", "x86-64-clang-elf", "none".
- * Command-line arguments to generate "custom" medium with C-style compilers.
+The code above will asynchronously run *dependencies/my_lib/build.dart* in a separate isolate and add its result to the `result` object.

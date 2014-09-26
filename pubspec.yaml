@@ -1,5 +1,8 @@
 name: anbuild
-description: A sample command-line application
+version: 0.0.1
+author: Alex Nichol <unixpickle@gmail.com>
+description: A simple build configuration tool that can generate Makefiles.
+homepage: https://github.com/unixpickle/anbuild
 dependencies:
   args: '>=0.12.0 <0.13.0'
   path: any
