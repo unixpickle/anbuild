@@ -11,16 +11,17 @@ void main(List<String> args) {
   if (results.rest.length != 1) {
     dieUsage();
   }
-  if (results['formatter'] != 'makefile') {
-    stderr.writeln('invalid formatter: ${results['formatter']}');
-    dieUsage();
+  var scriptPath = path_lib.absolute(results.rest.first);
+  var outputDir = path_lib.dirname(scriptPath);
+  if (results['output'] != null) {
+    outputDir = path_lib.absolute(results['output']);
   }
-  runBuild(results.rest.first, exportMakefile);
+  runBuild(scriptPath, outputDir, exportMakefile);
 }
 
-void runBuild(String script, OutputFormatter formatter) {
+void runBuild(String script, String outputDir, OutputFormatter formatter) {
   runDependency(path_lib.absolute(script)).then((result) {
-    return formatter(path_lib.dirname(script), result);
+    return formatter(outputDir, result);
   }).catchError((e) {
     stderr.writeln('Error: $e');
     exit(1);
@@ -30,7 +31,8 @@ void runBuild(String script, OutputFormatter formatter) {
 ArgParser get argumentParser {
   ArgParser parser = new ArgParser(allowTrailingOptions: true);
   parser.addOption('formatter', help: 'The target build system',
-      defaultsTo: 'makefile');
+      defaultsTo: 'makefile', allowed: ['makefile']);
+  parser.addOption('output', help: 'The output directory');
   return parser;
 }
 
