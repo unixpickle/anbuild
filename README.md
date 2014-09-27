@@ -1,6 +1,6 @@
 # anbuild
 
-This will be a replacement for [makemaker](https://github.com/unixpickle/makemaker).  The main purpose of this tool is too generate makefiles (or, in the future, other types of build scripts).
+This will be a replacement for [makemaker](https://github.com/unixpickle/makemaker).  The main purpose of this tool is to generate Makefiles (or, in the future, other types of build scripts).
 
 # Installation
 
@@ -15,10 +15,12 @@ You may want to setup a Bash alias to turn this into a simple `anbuild` command.
 Here's how it works:
 
  * In the root directory of a library, I create a file called **build.dart**.
- * In my new *build.dart* file, I can
-   * Add include directories
-   * Add sources
-   * Add compiler flags
+ * In my new *build.dart* file, I can add
+   * include directories
+   * sources files and directories
+   * compiler flags
+   * dependency build scripts
+ * In the *build.dart* script, I may download dependencies from online sources
  * To generate a Makefile, I run a command such as: `anbuild build.dart`
  * To run the new Makefile, I run `make`
 
