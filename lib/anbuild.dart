@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path_lib;
 part 'src/target_result.dart';
 part 'src/path.dart';
 part 'src/file_scanner.dart';
+part 'src/failure_guard.dart';
 
 part 'src/dependencies/dependency.dart';
 part 'src/dependencies/dependency_fetcher.dart';

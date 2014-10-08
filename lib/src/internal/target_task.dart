@@ -1,6 +1,19 @@
 part of anbuild;
 
 /**
+ * An error which occurs when running a build script in an isolate.
+ */
+class TargetTaskError extends Error {
+  final String message;
+  
+  TargetTaskError(this.message);
+  
+  String toString() {
+    return message;
+  }
+}
+
+/**
  * A target which runs in a separate isolate.
  */
 class _TargetTask {
@@ -50,6 +63,9 @@ class _TargetTask {
       return incoming.first;
     }).then((message) {
       incoming.close();
+      if (message is String) {
+        throw new TargetTaskError(message);
+      }
       return new TargetResult.unpack(message);
     }).whenComplete(() {
       if (packages.created) {
