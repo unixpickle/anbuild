@@ -4,10 +4,10 @@ part of anbuild;
  * A shortcut for creating a new [GitDependencyFetcher] and using it to fetch a
  * repository.
  */
-Future fetchGitDependency(String name, String url, {String directory: null,
-                          String gitCommand: 'git', String branch: null}) {
-  return new GitDependencyFetcher(name, url, directory: directory,
-      gitCommand: gitCommand, branch: branch).fetch();
+Future fetchGitDependency(String name, String url, {String gitCommand: 'git',
+                          String branch: null}) {
+  return new GitDependencyFetcher(name, url, gitCommand: gitCommand,
+      branch: branch).fetch();
 }
 
 /**
@@ -57,8 +57,8 @@ class GitDependencyFetcher extends DependencyFetcher {
    * corresponding instance fields.
    */
   GitDependencyFetcher(String name, this.gitUrl, {this.gitCommand: 'git',
-                       this.branch: null, String directory: null})
-      : super(name, directory: directory);
+                       this.branch: null})
+      : super(name);
   
   /**
    * Asynchronously runs a `git clone` command.

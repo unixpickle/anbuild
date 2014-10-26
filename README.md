@@ -30,12 +30,14 @@ Here's how it works:
 
 ```dart
 import 'package:anbuild/anbuild.dart';
-void main(_, port) {
-  var result = new TargetResult();
-  result.addIncludes('c', ['include']);
-  result.addFlags('c', ['-c']);
-  result.addScanSources('src');
-  port.send(result.pack());
+void main(args, port) {
+  runBuildMain(args, port, () {
+    var result = new TargetResult();
+    result.addIncludes('c', ['include']);
+    result.addFlags('c', ['-c']);
+    result.addScanSources('src');
+    port.send(result.pack());
+  });
 }
 ```
 

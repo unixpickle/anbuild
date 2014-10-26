@@ -16,6 +16,11 @@ void main(List<String> args) {
   if (results['output'] != null) {
     outputDir = path_lib.absolute(results['output']);
   }
+  if (results['deps'] != null) {
+    dependencyDirectory = path_lib.absolute(results['deps']);
+  } else {
+    dependencyDirectory = path_lib.join(outputDir, 'dependencies');
+  }
   runBuild(scriptPath, outputDir, exportMakefile);
 }
 
@@ -33,6 +38,7 @@ ArgParser get argumentParser {
   parser.addOption('formatter', help: 'The target build system',
       defaultsTo: 'makefile', allowed: ['makefile']);
   parser.addOption('output', help: 'The output directory');
+  parser.addOption('deps', help: 'The dependencies directory');
   return parser;
 }
 

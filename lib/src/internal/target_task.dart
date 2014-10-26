@@ -58,7 +58,8 @@ class _TargetTask {
    */
   Future<TargetResult> run() {
     return packages.create().then((_) {
-      return Isolate.spawnUri(new Uri.file(scriptMain), [], incoming.sendPort);
+      return Isolate.spawnUri(new Uri.file(scriptMain), [dependencyDirectory],
+          incoming.sendPort);
     }).then((_) {
       return incoming.first;
     }).then((message) {

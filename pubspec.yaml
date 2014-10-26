@@ -1,5 +1,5 @@
 name: anbuild
-version: 0.0.1
+version: 0.1.0
 author: Alex Nichol <unixpickle@gmail.com>
 description: A simple build configuration tool that can generate Makefiles.
 homepage: https://github.com/unixpickle/anbuild
